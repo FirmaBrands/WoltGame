@@ -19,20 +19,20 @@ const CORE = (() => {
   const CH_FULL = 660, CH_VIS = 0.488;                 // characters drawn at this full height, cropped at the torso like the original
   const CH_W = 346, TRAY_Y = H - CH_FULL * CH_VIS + 8, TRAY_HALF = 170, BODY = 300;
   const GAME_T = 60, RUSH_T = 12;
-  const CFG = { A: 0.9, B: 0.14, R: 0.8, V0: 410, V1: 170, MC: 5 };   // spawn interval A..A-B (s), rush factor R, fall speed V0..V0+V1, combo steps cap (×1 + 0.5 per 3 catches)
+  const CFG = { A: 1.05, B: 0.45, R: 0.85, V0: 480, V1: 220, MC: 4, MN: 4, MS: 0.25 };   // spawn interval A..A-B (s), rush factor R, fall speed V0..V0+V1, combo steps cap (×1 + 0.5 per 3 catches)
   const P_MAXV = 1450, P_ACC = 10500, R_MAXV = 840, R_ACC = 5000;
   const TYPES = [
-    { key: 'coin',  img: 'it_coin',  pts: 12, w: 0.49, size: 138, spd: 1.0 },
-    { key: 'fee',   img: 'it_fee',   pts: 24, w: 0.29, size: 144, spd: 1.08 },
-    { key: 'vip',   img: 'it_vip',   pts: 40, w: 0.15, size: 156, spd: 1.18 },
-    { key: 'bonus', img: 'it_bonus', pts: 180, w: 0.07, size: 130, spd: 1.38 },
+    { key: 'coin',  img: 'it_coin',  pts: 20, w: 0.49, size: 138, spd: 1.0 },
+    { key: 'fee',   img: 'it_fee',   pts: 40, w: 0.29, size: 144, spd: 1.08 },
+    { key: 'vip',   img: 'it_vip',   pts: 65, w: 0.15, size: 156, spd: 1.18 },
+    { key: 'bonus', img: 'it_bonus', pts: 200, w: 0.07, size: 130, spd: 1.38 },
   ];
   /* prizes: rename here (calibrated thresholds from tune.js) */
   const GIFTS = [
-    { at: 3000, name: 'Prize 1' },
-    { at: 4500, name: 'Prize 2' },
-    { at: 5000, name: 'Prize 3' },
-    { at: 5500, name: 'Prize 4' },
+    { at: 2500, name: 'Prize 1' },
+    { at: 4000, name: 'Prize 2' },
+    { at: 4500, name: 'Prize 3' },
+    { at: 5000, name: 'Prize 4' },
   ];
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
   const EDGE = CH_W * 0.3, LOOP = W + 2 * EDGE;   // a character switches sides once 80% of him has left the frame
@@ -167,7 +167,7 @@ const CORE = (() => {
       g.nextSpawn = (CFG.A - CFG.B * d) * (rush(g) ? CFG.R : 1) * (0.8 + g.r() * 0.4);
     }
     if (g.t - g.lastCatch > 2.2) g.streak = 0;
-    g.mult = 1 + Math.min(CFG.MC, Math.floor(g.streak / 3)) * 0.5;
+    g.mult = 1 + Math.min(CFG.MC, Math.floor(g.streak / CFG.MN)) * CFG.MS;
     for (let i = g.items.length - 1; i >= 0; i--) {
       const it = g.items[i], T = TYPES[it.k];
       const yPrev = it.y; it.y += it.vy * dt; it.vy += 60 * dt; it.x += it.vx * dt; it.rot += it.spin * dt;
@@ -178,7 +178,7 @@ const CORE = (() => {
         const dp = Math.abs(wd(P.x, it.x));
         let rb = null, rd = 1e9; for (const R of RS) { const d = Math.abs(wd(R.x, it.x)); if (d < rd) { rd = d; rb = R; } }
         if (dp < reach && (dp <= rd + 40 || rd >= reach)) {
-          g.streak++; g.lastCatch = g.t; g.mult = 1 + Math.min(CFG.MC, Math.floor(g.streak / 3)) * 0.5;
+          g.streak++; g.lastCatch = g.t; g.mult = 1 + Math.min(CFG.MC, Math.floor(g.streak / CFG.MN)) * CFG.MS;
           const pts = Math.round(T.pts * g.mult);
           g.score += pts; g.caught++; P.catchT = g.t;
           g.events.push({ e: 'catch', x: it.x, y: line, k: it.k, pts, mult: g.mult });
@@ -341,7 +341,7 @@ if (typeof module !== 'undefined') module.exports = CORE;
         SFX.catch(e.k, e.mult);
         burst(e.x, e.y, 14, [CYAN, LCYAN, NAVY]);
         floats.push({ x: e.x, y: e.y - 90, t0: now, s: '+' + e.pts, col: NAVY, big: e.pts >= 100 });
-        if (e.mult > 1 && game.streak % 3 === 0) floats.push({ x: e.x, y: e.y - 160, t0: now + 0.05, s: 'COMBO ×' + e.mult, col: CYAN });
+        if (e.mult > 1 && game.streak % CORE.CFG.MN === 0 && game.streak / CORE.CFG.MN <= CORE.CFG.MC) floats.push({ x: e.x, y: e.y - 160, t0: now + 0.05, s: 'COMBO ×' + e.mult, col: CYAN });
       } else if (e.e === 'steal') {
         const c = e.who === 'char_red' ? RED : ORANGE;
         SFX.steal(); burst(e.x, e.y, 8, [c, '#FFC48A']);
