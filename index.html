@@ -22,17 +22,17 @@ const CORE = (() => {
   const CFG = { A: 1.05, B: 0.45, R: 0.85, V0: 480, V1: 220, MC: 4, MN: 4, MS: 0.25 };   // spawn interval A..A-B (s), rush factor R, fall speed V0..V0+V1, combo steps cap (×1 + 0.5 per 3 catches)
   const P_MAXV = 1450, P_ACC = 10500, R_MAXV = 840, R_ACC = 5000;
   const TYPES = [
-    { key: 'coin',  img: 'it_coin',  pts: 20, w: 0.49, size: 138, spd: 1.0 },
+    { key: 'coin',  img: 'it_coin',  pts: 20, w: 0.47, size: 138, spd: 1.0 },
     { key: 'fee',   img: 'it_fee',   pts: 40, w: 0.29, size: 144, spd: 1.08 },
     { key: 'vip',   img: 'it_vip',   pts: 65, w: 0.15, size: 156, spd: 1.18 },
-    { key: 'bonus', img: 'it_bonus', pts: 200, w: 0.07, size: 130, spd: 1.38 },
+    { key: 'bonus', img: 'it_bonus', pts: 200, w: 0.09, size: 130, spd: 1.08 },
   ];
   /* prizes: rename here (calibrated thresholds from tune.js) */
   const GIFTS = [
-    { at: 1500, name: 'Prize 1' },
-    { at: 3800, name: 'Prize 2' },
-    { at: 4300, name: 'Prize 3' },
-    { at: 4800, name: 'Prize 4' },
+    { at: 1300, name: 'Prize 1' },
+    { at: 3500, name: 'Prize 2' },
+    { at: 3700, name: 'Prize 3' },
+    { at: 4000, name: 'Prize 4' },
   ];
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
   const EDGE = CH_W * 0.3, LOOP = W + 2 * EDGE;   // a character switches sides once 80% of him has left the frame
