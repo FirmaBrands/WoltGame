@@ -612,81 +612,80 @@ if (typeof module !== 'undefined') module.exports = CORE;
     return (TINT[key] = c);
   }
   function img(im, x, y, w, h, alpha = 1) { ctx.save(); ctx.globalAlpha *= alpha; ctx.drawImage(im, x, y, w, h); ctx.restore(); }
-  /* Layout: brand-cyan backdrop with the light stage curve (same language as the start screen).
-     [benefits card]   [badge + podium]   [score & prize card]  — two matching white cards flank the podium. */
-  const CARD = { y: 200, w: 500, h: 620, l: 70, r: W - 70 - 500 };
-  function card(x, y, w, h, u) {
-    ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(22,24,64,.18)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 18;
-    rr(x, y + (1 - u) * 60, w, h, 36); ctx.fill(); ctx.restore();
-  }
+  /* End screen: podium hero on the left, one white panel on the right (score + prize, then the benefits, legal in a footer). */
+  const PNL = { x: 1060, y: 40, w: 810, h: 860 };
+  const BEN_HEAD = 'לקוחות Wolt Benefits נהנים מ:';
+  const BEN = ['10% הנחה על הזמנות צהריים קבוצתיות*', ['דמי משלוח חינם עם', '**Wolt+'], 'מעמד פלטינום בוולט', 'תשלום ב-Tap בסופרים ובמסעדות', 'ועוד הטבות משתנות'];
+  const LEGAL = ['*בהזמנה מעל 200₪ | ממגוון מסעדות בימים א-ה בין השעות 11-15', 'עד 50₪ הנחה | בתשלום כלל חברי הקבוצה באמצעי תשלום וולט בנפיטס.', '**בכפוף לרכישת מנוי וולט+ לעובדי הארגון | דמי תפעול יחולו בביצוע ההזמנה.'];
   function podium(a) {
-    const FLOOR = H, CHH = 360;
-    const P = [   // [x, block height, label, character, delay]
-      [748, 150, '2', 'char_red', 0.25], [1172, 105, '3', 'char_orange', 0.35], [960, 205, '1', 'char_blue', 0.1]];
+    const FLOOR = H, CHH = 380, CX = 530;
+    const P = [[CX - 215, 150, '2', 'char_red', 0.25], [CX + 215, 100, '3', 'char_orange', 0.35], [CX, 210, '1', 'char_blue', 0.1]];
+    const sp = ctx.createRadialGradient(CX, 640, 30, CX, 640, 520); sp.addColorStop(0, 'rgba(255,255,255,.35)'); sp.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sp; ctx.fillRect(0, 100, 1060, 980);
     for (const [x, bh, lab, ch, dl] of P) {
       const u = ease.outBack((a - dl) / 0.55, 1.2); if (u <= 0) continue;
-      const first = lab === '1', w = 204, top = FLOOR - bh * u;
-      ctx.save(); ctx.shadowColor = 'rgba(22,24,64,.16)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = -4;
-      ctx.fillStyle = first ? NAVY : '#fff'; rr(x - w / 2, top, w, bh + 40, 28); ctx.fill(); ctx.restore();
-      text(lab, x, top + Math.min(bh, 150) / 2 + 6, first ? 92 : 76, first ? '#fff' : CYAN, 'center', 900);
+      const first = lab === '1', w = 210, top = FLOOR - bh * u;
+      ctx.save(); ctx.shadowColor = 'rgba(22,24,64,.18)'; ctx.shadowBlur = 30;
+      ctx.fillStyle = first ? NAVY : '#fff'; rr(x - w / 2, top, w, bh + 40, 26); ctx.fill(); ctx.restore();
+      text(lab, x, top + Math.min(bh, 140) / 2 + 6, first ? 92 : 74, first ? '#fff' : CYAN, 'center', 900);
       const cu = ease.outBack((a - dl - 0.25) / 0.45, 1.6); if (cu <= 0) continue;
       const im = IMG[ch], sc = CHH / im.height * (first ? 1.08 : 1), hop = first ? Math.abs(Math.sin(now * 3.2)) * 12 : 0;
       ctx.save(); ctx.globalAlpha = Math.min(1, cu * 2); ctx.translate(x, top + 6 - hop - (1 - cu) * 120); ctx.scale(sc, sc);
       ctx.drawImage(im, -im.width / 2, -im.height * 0.97); ctx.restore();
     }
     const bu = ease.outBack((a - 0.7) / 0.5, 1.8);
-    if (bu > 0) { const bd = IMG.win_badge, bw = 330 * bu, bh = bw * bd.height / bd.width, bob = Math.sin(now * 2.5) * 5, by = 40 + (330 * 330 / 448 - bh) / 2 + bob;
-      ctx.drawImage(bd, 960 - bw / 2, by, bw, bh);
-      for (const [ox, oy, k, o] of [[-205, 80, 0.75, 0], [190, 40, 1, 1.3], [215, 185, 0.5, 2.4]]) { const tw = (0.7 + 0.3 * Math.sin(now * 4 + o)) * k * bu, sm = o ? IMG.sp_small : IMG.sp_big, wim = silhouette(sm);
-        ctx.save(); ctx.translate(960 + ox, 40 + oy + bob); ctx.scale(tw, tw); ctx.drawImage(wim, -sm.width / 2, -sm.height / 2); ctx.restore(); }
+    if (bu > 0) { const bd = IMG.win_badge, bw = 340 * bu, bh = bw * bd.height / bd.width, bob = Math.sin(now * 2.5) * 5, by = 44 + (340 * 330 / 448 - bh) / 2 + bob;
+      ctx.drawImage(bd, CX - bw / 2, by, bw, bh);
+      for (const [ox, oy, k, o] of [[-210, 80, 0.75, 0], [195, 40, 1, 1.3], [220, 190, 0.5, 2.4]]) { const tw = (0.7 + 0.3 * Math.sin(now * 4 + o)) * k * bu, sm = o ? IMG.sp_small : IMG.sp_big, wim = silhouette(sm);
+        ctx.save(); ctx.translate(CX + ox, 44 + oy + bob); ctx.scale(tw, tw); ctx.drawImage(wim, -sm.width / 2, -sm.height / 2); ctx.restore(); }
     }
   }
-  function benefitsCard(a) {
+  function panel(a) {
     const u = ease.outCubic((a - 0.3) / 0.6); if (u <= 0) return;
-    const { y, w, h, l: x } = CARD, cx = x + w / 2, right = x + w - 40, yy = y + (1 - u) * 60;
-    ctx.save(); ctx.globalAlpha = u; card(x, y, w, h, u);
-    const hw = 380 * 0.9, hh = 83 * 0.9; ctx.drawImage(IMG.win_head, cx - hw / 2, yy + 44, hw, hh);
-    ctx.fillStyle = '#EDEFF5'; ctx.fillRect(x + 40, yy + 150, w - 80, 2);
-    const rows = [['win_row1', 553, 50], ['win_row2', 432, 49], ['win_row3', 311, 50], ['win_row4', 484, 50], ['win_row5', 311, 49]], k = 0.78;
-    rows.forEach(([n, rw, rh], i) => { const ru = clamp((a - 0.6 - i * 0.08) / 0.3, 0, 1); ctx.save(); ctx.globalAlpha *= ru; ctx.drawImage(IMG[n], right - rw * k + (1 - ru) * 24, yy + 178 + i * 56, rw * k, rh * k); ctx.restore(); });
-    const cw = 334 * 0.74, chh = 89 * 0.74; ctx.drawImage(IMG.win_cta, cx - cw / 2, yy + h - chh - 44, cw, chh);
-    ctx.restore();
-    // legal small print under the card, on the backdrop
-    const lu = clamp((a - 1.0) / 0.4, 0, 1), lw = w + 40, lh = lw * 101 / 807;
-    ctx.save(); ctx.globalAlpha = lu * 0.85; ctx.drawImage(tint(IMG.win_legal, NAVY), cx - lw / 2, y + h + 30, lw, lh); ctx.restore();
-  }
-  function prizeCard(a) {
-    const u = ease.outCubic((a - 0.45) / 0.6); if (u <= 0) return;
-    const g = game, { y, w, h, r: x } = CARD, cx = x + w / 2, yy = y + (1 - u) * 60;
-    ctx.save(); ctx.globalAlpha = u; card(x, y, w, h, u);
-    text('הניקוד שלך', cx, yy + 62, 32, '#8A8DA6', 'center', 700);
-    text(String(Math.round(g.score * ease.outCubic((a - 0.5) / 1.2))), cx, yy + 140, 100, NAVY, 'center', 900);
-    if (newBest) { ctx.fillStyle = CYAN; rr(cx - 86, yy + 196, 172, 40, 20); ctx.fill(); text('שיא חדש!', cx, yy + 217, 22, NAVY, 'center', 900); }
-    else if (best) text(`השיא: ${best}`, cx, yy + 217, 24, '#8A8DA6', 'center', 700);
-    ctx.fillStyle = '#EDEFF5'; ctx.fillRect(x + 40, yy + 262, w - 80, 2);
-    if (g.gifts === 0) {
-      text('הפעם בלי פרס', cx, yy + 400, 40, NAVY, 'center', 800);
-      text('נסו שוב!', cx, yy + 452, 34, '#8A8DA6', 'center', 700);
-    } else {
-      text('הפרס שלך', cx, yy + 306, 32, '#8A8DA6', 'center', 700);
-      drawReveal(cx, yy + 515, 150, g.gifts - 1, a - 0.4);
-    }
-    ctx.restore();
+    const g = game, { x, w, h } = PNL, y = PNL.y + (1 - u) * 60, R = x + w - 64, L = x + 64, mid = x + w / 2;
+    ctx.save(); ctx.globalAlpha = u;
+    ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(22,24,64,.2)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 18; rr(x, y, w, h, 40); ctx.fill(); ctx.restore();
+    ctx.save(); rr(x, y, w, h, 40); ctx.clip();
+    // footer band
+    ctx.fillStyle = '#F2F4F8'; ctx.fillRect(x, y + h - 128, w, 128);
+    LEGAL.forEach((s, i) => text(s, R, y + h - 92 + i * 30, 19, '#7D8098', 'right', 500));
+    // top: score (right half) | prize (left half)
+    const sx = x + w * 0.73, px = x + w * 0.27;
+    text('הניקוד שלך', sx, y + 70, 28, '#8A8DA6', 'center', 700);
+    text(String(Math.round(g.score * ease.outCubic((a - 0.5) / 1.2))), sx, y + 158, 108, NAVY, 'center', 900);
+    if (newBest) { ctx.fillStyle = CYAN; rr(sx - 84, y + 222, 168, 40, 20); ctx.fill(); text('שיא חדש!', sx, y + 243, 22, NAVY, 'center', 900); }
+    else if (best) text(`השיא: ${best}`, sx, y + 243, 24, '#8A8DA6', 'center', 700);
+    ctx.fillStyle = '#EDEFF5'; ctx.fillRect(mid - 1, y + 50, 2, 230);
+    if (g.gifts === 0) { text('הפעם בלי פרס', px, y + 140, 36, NAVY, 'center', 800); text('נסו שוב!', px, y + 190, 30, '#8A8DA6', 'center', 700); }
+    else { text('הפרס שלך', px, y + 70, 28, '#8A8DA6', 'center', 700); drawReveal(px, y + 230, 120, g.gifts - 1, a - 0.4); }
+    // benefits
+    ctx.fillStyle = '#EDEFF5'; ctx.fillRect(L, y + 318, w - 128, 2);
+    text(BEN_HEAD, R, y + 374, 38, NAVY, 'right', 900);
+    BEN.forEach((s, i) => { const ru = clamp((a - 0.7 - i * 0.08) / 0.3, 0, 1), ry = y + 440 + i * 56;
+      ctx.save(); ctx.globalAlpha *= ru; ctx.translate((1 - ru) * 20, 0);
+      ctx.drawImage(IMG.star, R - 36, ry - 18, 36, 36);
+      if (Array.isArray(s)) {   // Hebrew + Latin tail, laid out by hand so "Wolt+" keeps its order
+        text(s[0], R - 52, ry + 2, 29, NAVY, 'right', 600); ctx.font = `600 29px ${FONT}`; ctx.direction = 'rtl'; const hw = ctx.measureText(s[0]).width; ctx.direction = 'ltr';
+        text(s[1], R - 52 - hw - 3, ry + 2, 29, NAVY, 'right', 600);
+      } else text(s, R - 52, ry + 2, 29, NAVY, 'right', 600);
+      ctx.restore(); });
+    const cw = 230, chh = cw * 89 / 334; ctx.drawImage(IMG.win_cta, L, y + h - 128 - chh - 34, cw, chh);
+    ctx.restore(); ctx.restore();
   }
   function drawEnd() {
     const a = now - tMode, g = game;
     ctx.save(); ctx.globalAlpha = Math.min(1, a / 0.3);
     ctx.fillStyle = CYAN; ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = BG; ctx.beginPath(); ctx.ellipse(W / 2, H + 420, 1500, 640, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = BG; ctx.beginPath(); ctx.ellipse(530, H + 330, 900, 470, 0, 0, TAU); ctx.fill();
     ctx.restore();
-    podium(a); benefitsCard(a); prizeCard(a);
+    podium(a); panel(a);
     const bt = g.gifts ? 3.2 : 1.6;
     if (a > bt) { ctx.save(); ctx.globalAlpha = clamp((a - bt) / 0.3, 0, 1);
-      const cx = CARD.r + CARD.w / 2, by = CARD.y + CARD.h + 78, hov = hoverBtn && hoverBtn.label === 'next', s = hov ? 1.04 : 1;
+      const cx = PNL.x + PNL.w / 2, by = PNL.y + PNL.h + 90, hov = hoverBtn && hoverBtn.label === 'next', s = hov ? 1.04 : 1;
       ctx.translate(cx, by); ctx.scale(s, s); ctx.fillStyle = NAVY; ctx.shadowColor = 'rgba(22,24,64,.3)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
-      rr(-210, -50, 420, 100, 50); ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-      text('לשחקן הבא', 0, 4, 42, '#fff', 'center', 900); ctx.restore();
-      btns.push({ x: cx - 210, y: by - 50, w: 420, h: 100, fn: startGame, label: 'next' }); }
+      rr(-220, -52, 440, 104, 52); ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+      text('לשחקן הבא', 0, 4, 44, '#fff', 'center', 900); ctx.restore();
+      btns.push({ x: cx - 220, y: by - 52, w: 440, h: 104, fn: startGame, label: 'next' }); }
   }
 
   /* gift appears, shakes, the lid pops off and the prize rises out (placeholder art for now) */
